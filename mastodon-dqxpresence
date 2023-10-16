@@ -1,0 +1,62 @@
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+import os
+import json
+
+import requests
+from bs4 import BeautifulSoup
+from mastodon import Mastodon
+
+rc = os.environ.get('HOME', '.') + '/.dqxpresence'
+pr = os.environ.get('HOME', '.') + '/.mpresence'
+
+
+def getProfile():
+    j = {}
+    p = ''
+    with open(rc) as f:
+        j = json.loads(f.read())
+    try:
+        with open(pr) as f:
+            p = f.read().strip()
+    except Exception:
+        writePresence('')
+
+    return j.get('mastodon_client'), j.get('mastodon_secret'), j.get('mastodon_token'), j.get('mastodon_instance'), j.get('id'), j.get('namebase'), p
+
+
+def writePresence(status):
+    with open(pr, 'w') as f:
+        f.write(status)
+
+
+def getStatus(user_id):
+    r = requests.get(f'http://hiroba.dqx.jp/sc/character/{user_id}/status', timeout=10)
+    if r and r.status_code == 200:
+        soup = BeautifulSoup(r.content, 'html.parser')
+        level = soup.find('td', class_='text-center').text
+        level = level.strip('\t\r\n')
+        level = level.replace(u'\xa0', '')
+        level = level.replace('/レベル', '')
+        return level
+    return ''
+
+
+def setDisplayName(client, secret, token, instance, display_name):
+    if client and secret and token and instance:
+        mstdn = Mastodon(client_id=client,
+                         client_secret=secret,
+                         access_token=token,
+                         api_base_url=instance)
+        mstdn.account_update_credentials(display_name=display_name)
+
+
+if __name__ == '__main__':
+    client, secret, token, instance, user_id, namebase, pre = getProfile()
+    status = getStatus(user_id)
+    if status == pre:
+        exit()
+
+    if namebase:
+        writePresence(status)
+        setDisplayName(client, secret, token, instance, f'{namebase}＠{status}')
