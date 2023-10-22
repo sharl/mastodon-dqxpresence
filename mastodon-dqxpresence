@@ -60,7 +60,7 @@ if __name__ == '__main__':
         st = os.stat(pr)
         if time.time() - st.st_mtime >= 3600:
             setDisplayName(client, secret, token, instance, f'{namebase}')
-            exit()
+        exit()
 
     status = getStatus(user_id)
     if status == pre:
