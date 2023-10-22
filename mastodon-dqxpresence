@@ -1,6 +1,8 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 import os
+import sys
+import time
 import json
 
 import requests
@@ -53,6 +55,13 @@ def setDisplayName(client, secret, token, instance, display_name):
 
 if __name__ == '__main__':
     client, secret, token, instance, user_id, namebase, pre = getProfile()
+
+    if len(sys.argv) > 1:
+        st = os.stat(pr)
+        if time.time() - st.st_mtime >= 3600:
+            setDisplayName(client, secret, token, instance, f'{namebase}')
+            exit()
+
     status = getStatus(user_id)
     if status == pre:
         exit()
