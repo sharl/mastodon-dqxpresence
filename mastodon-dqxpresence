@@ -13,59 +13,63 @@ rc = os.environ.get('HOME', '.') + '/.dqxpresence'
 pr = os.environ.get('HOME', '.') + '/.mpresence'
 
 
-def getProfile():
-    j = {}
-    p = ''
-    with open(rc) as f:
-        j = json.loads(f.read())
-    try:
-        with open(pr) as f:
-            p = f.read().strip()
-    except Exception:
-        writePresence('')
+class DQX:
+    def __init__(self):
+        j = {}
+        self.pre_status = ''
+        with open(rc) as f:
+            j = json.loads(f.read())
+        try:
+            with open(pr) as f:
+                self.pre_status = f.read().strip()
+        except Exception:
+            self.writePresence('')
 
-    return j.get('mastodon_client'), j.get('mastodon_secret'), j.get('mastodon_token'), j.get('mastodon_instance'), j.get('id'), j.get('namebase'), p
+        self.client = j.get('mastodon_client')
+        self.secret = j.get('mastodon_secret')
+        self.token = j.get('mastodon_token')
+        self.instance = j.get('mastodon_instance')
+        self.user_id = j.get('id')
+        self.namebase = j.get('namebase')
 
+        if self.client and self.secret and self.token and self.instance:
+            self.mstdn = Mastodon(client_id=self.client,
+                                  client_secret=self.secret,
+                                  access_token=self.token,
+                                  api_base_url=self.instance)
 
-def writePresence(status):
-    with open(pr, 'w') as f:
-        f.write(status)
+    def writePresence(self, status):
+        with open(pr, 'w') as f:
+            f.write(status)
 
+    def getStatus(self):
+        r = requests.get(f'http://hiroba.dqx.jp/sc/character/{self.user_id}/status', timeout=10)
+        if r and r.status_code == 200:
+            soup = BeautifulSoup(r.content, 'html.parser')
+            level = soup.find('td', class_='text-center').text
+            level = level.strip('\t\r\n')
+            level = level.replace(u'\xa0', '')
+            level = level.replace('/レベル', '')
+            return level
+        return ''
 
-def getStatus(user_id):
-    r = requests.get(f'http://hiroba.dqx.jp/sc/character/{user_id}/status', timeout=10)
-    if r and r.status_code == 200:
-        soup = BeautifulSoup(r.content, 'html.parser')
-        level = soup.find('td', class_='text-center').text
-        level = level.strip('\t\r\n')
-        level = level.replace(u'\xa0', '')
-        level = level.replace('/レベル', '')
-        return level
-    return ''
-
-
-def setDisplayName(client, secret, token, instance, display_name):
-    if client and secret and token and instance:
-        mstdn = Mastodon(client_id=client,
-                         client_secret=secret,
-                         access_token=token,
-                         api_base_url=instance)
-        mstdn.account_update_credentials(display_name=display_name)
+    def setDisplayName(self, display_name):
+        self.mstdn.account_update_credentials(display_name=display_name)
 
 
 if __name__ == '__main__':
-    client, secret, token, instance, user_id, namebase, pre = getProfile()
+    dqx = DQX()
 
     if len(sys.argv) > 1:
         st = os.stat(pr)
         if time.time() - st.st_mtime >= 3600:
-            setDisplayName(client, secret, token, instance, f'{namebase}')
+            dqx.setDisplayName(f'{dqx.namebase}')
         exit()
 
-    status = getStatus(user_id)
-    if status == pre:
+    status = dqx.getStatus()
+    if status == dqx.pre_status:
         exit()
 
-    if namebase:
-        writePresence(status)
-        setDisplayName(client, secret, token, instance, f'{namebase}＠{status}')
+    if dqx.namebase:
+        dqx.writePresence(status)
+        dqx.setDisplayName(f'{dqx.namebase}＠{dqx.status}')
