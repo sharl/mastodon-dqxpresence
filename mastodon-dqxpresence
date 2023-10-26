@@ -56,14 +56,24 @@ class DQX:
     def setDisplayName(self, display_name):
         self.mstdn.account_update_credentials(display_name=display_name)
 
+    def toot(self):
+        if not sys.stdin.isatty():
+            text = sys.stdin.read().strip()
+            if text:
+                self.mstdn.status_post(text)
+
 
 if __name__ == '__main__':
     dqx = DQX()
 
     if len(sys.argv) > 1:
-        st = os.stat(pr)
-        if time.time() - st.st_mtime >= 3600:
-            dqx.setDisplayName(f'{dqx.namebase}')
+        cmd = sys.argv[1]
+        if cmd == 'reset':
+            st = os.stat(pr)
+            if time.time() - st.st_mtime >= 3600:
+                dqx.setDisplayName(f'{dqx.namebase}')
+        if cmd == 'toot':
+            dqx.toot()
         exit()
 
     status = dqx.getStatus()
