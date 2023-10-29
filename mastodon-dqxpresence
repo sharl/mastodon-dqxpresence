@@ -82,4 +82,4 @@ if __name__ == '__main__':
 
     if dqx.namebase:
         dqx.writePresence(status)
-        dqx.setDisplayName(f'{dqx.namebase}＠{dqx.status}')
+        dqx.setDisplayName(f'{dqx.namebase}＠{status}')
