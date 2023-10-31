@@ -40,6 +40,12 @@ mastodon-dqxpresence
 前回実行時と同じ職業・レベルなら何もしません。
 
 ```
+mastodon-dqxpresence set status
+```
+
+表示名を `{namebase}＠{status}` (例: おるどら＠ニラを包む皮を川に捨ててはいけない) にセットします。
+
+```
 mastodon-dqxpresence reset
 ```
 
