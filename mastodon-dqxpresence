@@ -56,11 +56,11 @@ class DQX:
     def setDisplayName(self, display_name):
         self.mstdn.account_update_credentials(display_name=display_name)
 
-    def toot(self):
+    def toot(self, visibility='unlisted'):
         if not sys.stdin.isatty():
             text = sys.stdin.read().strip()
             if text:
-                self.mstdn.status_post(text, visibility='unlisted')
+                self.mstdn.status_post(text, visibility=visibility)
 
 
 if __name__ == '__main__':
@@ -78,6 +78,8 @@ if __name__ == '__main__':
                 dqx.setDisplayName(f'{dqx.namebase}＠{arg}')
         elif cmd == 'toot':
             dqx.toot()
+        elif cmd == 'public' or cmd == 'private':
+            dqx.toot(visibility=cmd)
         exit()
 
     status = dqx.getStatus()
