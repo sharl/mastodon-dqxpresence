@@ -60,7 +60,7 @@ class DQX:
         if not sys.stdin.isatty():
             text = sys.stdin.read().strip()
             if text:
-                self.mstdn.status_post(text)
+                self.mstdn.status_post(text, visibility='unlisted')
 
 
 if __name__ == '__main__':
